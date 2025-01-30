@@ -4,32 +4,63 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const multer_1 = __importDefault(require("multer"));
-const pdf_parse_1 = __importDefault(require("pdf-parse"));
-const fs_1 = __importDefault(require("fs"));
 const embd_1 = require("../embedding/embd");
 const milvusServices_1 = require("../services/milvusServices");
 const client_1 = require("@prisma/client");
 const milvus2_sdk_node_1 = require("@zilliz/milvus2-sdk-node");
 const chunk_1 = require("../chunking/chunk");
-const upload = (0, multer_1.default)({ dest: 'uploads/' });
+const whisper_1 = require("../whisperservice/whisper");
+// const upload = multer({ 
+//   dest: 'uploads/',
+//   fileFilter: (req, file, cb) => {
+//       if (file.mimetype.startsWith('audio/')) {
+//           cb(null, true);
+//       } else {
+//           cb(new Error('Only audio files are allowed'));
+//       }
+//   }
+// });
 const prisma = new client_1.PrismaClient();
 const pdfrouter = express_1.default.Router();
-pdfrouter.post("/pdfUp", upload.single("pdf"), (async (req, res) => {
-    var _a;
+pdfrouter.post("/pdfUp", async (req, res) => {
     try {
-        if (!((_a = req.file) === null || _a === void 0 ? void 0 : _a.path) || !req.file) {
-            res.status(400).send("No file uploaded");
+        // if (!req.file) {
+        //   res.status(400).json({ message: "No file uploaded" });
+        // }
+        // const inputaudio:string=req.body;
+        // console.log(inputaudio)
+        const path = req.file ? req.file.path : req.body.path;
+        console.log(path);
+        if (!path) {
+            throw new Error("Path of the file is not there");
+        }
+        console.log("Genrating script");
+        const transcript = await (0, whisper_1.transcriptGen)(path);
+        console.log("done with the script");
+        if (!transcript) {
+            res.json({
+                message: "Transcript not generated"
+            });
             return;
         }
-        const pdf = fs_1.default.readFileSync(req.file.path);
-        const data = await (0, pdf_parse_1.default)(pdf);
-        const spiltArr = data.text.split("\n");
+        const spiltArr = transcript.split("\n");
         const textArray = spiltArr.filter(line => typeof line === 'string' && line.trim().length > 0);
+        console.log(textArray);
         const maxChunkSize = 400;
         const overlap = 100;
         const textChunks = (0, chunk_1.chunk)({ textArray, maxChunkSize, overlap });
         let checkGen = false;
+        // const del= await client.deleteEntities({
+        //   collection_name: collectionName,
+        //   expr: "id > 0" // Matches all entities since ID is always positive
+        // });
+        // console.log(del);
+        // 3. Flush changes to persist deletion
+        // await client.flush({ collection_names:collectionName });
+        // // 4. Release collection from memory
+        // await client.releaseCollection({
+        //   collection_name: collectionName
+        // });
         const embeddingResponse = await (0, embd_1.gen)(textChunks);
         if (!embeddingResponse || !embeddingResponse.data) {
             throw new Error("Failed to generate the embeddings");
@@ -91,5 +122,5 @@ pdfrouter.post("/pdfUp", upload.single("pdf"), (async (req, res) => {
     catch (e) {
         console.error("Error generating embeddings ", e);
     }
-}));
+});
 exports.default = pdfrouter;

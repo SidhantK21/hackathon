@@ -29,7 +29,7 @@ queryrouter.post("/query", async (req, res) => {
         const searchMilvus = await milvusServices_1.client.search({
             collection_name: milvusServices_1.collectionName,
             vectors: [vectorQuery],
-            topk: 5,
+            topk: 10,
             params: { noprobe: 16 }
         });
         if (!searchMilvus.results || !searchMilvus.results[0]) {
@@ -63,7 +63,7 @@ queryrouter.post("/query", async (req, res) => {
             console.log("No chunks found for the given vector IDs");
         }
         res.json({
-            results: chunks.map(chunk => ({
+            results: chunks.map((chunk) => ({
                 chunk: chunk.chunk,
                 fileId: chunk.fileId,
                 vectorId: chunk.vectorId,

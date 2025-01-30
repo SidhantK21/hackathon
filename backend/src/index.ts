@@ -19,6 +19,7 @@ app.use(
 app.use(express.json());
 
 app.use("/services", router);
+app.use("/auth",)
 
 app.get("/", (res:Response) => {
     res.send("Working");

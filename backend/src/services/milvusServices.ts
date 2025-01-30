@@ -55,7 +55,7 @@ export const initailzeService=async ()=>{
   
     await client.use({ db_name: dbName });
   
-    try {
+    try { 
       if(!milvusCreds.collectionCheck)
       {
         const collections = await client.list_collections();

@@ -7,32 +7,73 @@ import { client,collectionName} from "../services/milvusServices";
 import { PrismaClient } from "@prisma/client";
 import { IndexType } from "@zilliz/milvus2-sdk-node";
 import { chunk } from "../chunking/chunk";
+import { transcriptGen } from "../whisperservice/whisper";
 
-const upload = multer({ dest: 'uploads/' })
+
+// const upload = multer({ 
+//   dest: 'uploads/',
+//   fileFilter: (req, file, cb) => {
+//       if (file.mimetype.startsWith('audio/')) {
+//           cb(null, true);
+//       } else {
+//           cb(new Error('Only audio files are allowed'));
+//       }
+//   }
+// });
+
 const prisma=new PrismaClient();
 
-
 const pdfrouter=express.Router();
-
             
-pdfrouter.post("/pdfUp",upload.single("pdf"),(async (req: Request, res: Response) => {
+pdfrouter.post("/pdfUp",async (req: Request, res: Response) => {
       try {
-        if (!req.file?.path || !req.file) {
-            res.status(400).send("No file uploaded");
+        // if (!req.file) {
+        //   res.status(400).json({ message: "No file uploaded" });
+        // }
+
+
+        // const inputaudio:string=req.body;
+        // console.log(inputaudio)
+        const path: string = req.file ? req.file.path : req.body.path;
+        console.log(path);
+        if(!path)
+        {
+          throw new Error("Path of the file is not there");
+        }
+        console.log("Genrating script");
+        const transcript = await transcriptGen(path);
+        console.log("done with the script");
+        if(!transcript)
+        {
+            res.json({
+              message:"Transcript not generated"
+            })
             return;
         }
-  
-        const pdf = fs.readFileSync(req.file.path);
-        const data = await pdfParse(pdf);
-        
-        const spiltArr= data.text.split("\n");
+        const spiltArr = transcript.split("\n");
         const textArray = spiltArr.filter(line => typeof line === 'string' && line.trim().length > 0);
+        console.log(textArray);
 
         const maxChunkSize = 400; 
         const overlap = 100; 
         const textChunks = chunk({textArray, maxChunkSize, overlap});
   
         let checkGen=false;
+
+        // const del= await client.deleteEntities({
+        //   collection_name: collectionName,
+        //   expr: "id > 0" // Matches all entities since ID is always positive
+        // });
+        // console.log(del);
+    
+        // 3. Flush changes to persist deletion
+        // await client.flush({ collection_names:collectionName });
+    
+        // // 4. Release collection from memory
+        // await client.releaseCollection({
+        //   collection_name: collectionName
+        // });
+    
 
        
         const embeddingResponse = await gen(textChunks);
@@ -57,7 +98,7 @@ pdfrouter.post("/pdfUp",upload.single("pdf"),(async (req: Request, res: Response
 
             await client.loadCollection({
               collection_name: collectionName,
-            })
+            });
             
             if ('int_id' in vectorId && vectorId.int_id) {
               const idArray = vectorId.int_id.data;
@@ -110,6 +151,4 @@ pdfrouter.post("/pdfUp",upload.single("pdf"),(async (req: Request, res: Response
       }
       
     }) 
-);
-
 export default pdfrouter;
