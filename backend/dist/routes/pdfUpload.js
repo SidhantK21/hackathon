@@ -24,11 +24,11 @@ const prisma = new client_1.PrismaClient();
 const pdfrouter = express_1.default.Router();
 pdfrouter.post("/pdfUp", async (req, res) => {
     try {
-        // if (!req.file) {
-        //   res.status(400).json({ message: "No file uploaded" });
-        // }
-        // const inputaudio:string=req.body;
-        // console.log(inputaudio)
+        if (!req.file) {
+            res.status(400).json({ message: "No file uploaded" });
+        }
+        const inputaudio = req.body;
+        console.log(inputaudio);
         const path = req.file ? req.file.path : req.body.path;
         console.log(path);
         if (!path) {
@@ -37,6 +37,7 @@ pdfrouter.post("/pdfUp", async (req, res) => {
         console.log("Genrating script");
         const transcript = await (0, whisper_1.transcriptGen)(path);
         console.log("done with the script");
+        console.log(transcript);
         if (!transcript) {
             res.json({
                 message: "Transcript not generated"
@@ -55,8 +56,8 @@ pdfrouter.post("/pdfUp", async (req, res) => {
         //   expr: "id > 0" // Matches all entities since ID is always positive
         // });
         // console.log(del);
-        // 3. Flush changes to persist deletion
-        // await client.flush({ collection_names:collectionName });
+        // // 3. Flush changes to persist deletion
+        // // await client.flush({ collection_names:collectionName });
         // // 4. Release collection from memory
         // await client.releaseCollection({
         //   collection_name: collectionName

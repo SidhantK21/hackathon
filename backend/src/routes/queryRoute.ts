@@ -65,20 +65,16 @@ queryrouter.post("/query",async(req:Request,res:Response)=>{
     const prompt=await createPrompt(userInp,chunks);
 
     const summaryOutput = await chatCompl(prompt);
-    console.log(summaryOutput);
+    // console.log(summaryOutput);
 
     if (!chunks || chunks.length === 0) {
       console.log("No chunks found for the given vector IDs");
     }
 
     res.json({
-      results: chunks.map((chunk: { chunk: any; fileId: any; vectorId: any; fileDta: any; }) => ({
-          chunk: chunk.chunk,
-          fileId: chunk.fileId,
-          vectorId: chunk.vectorId,
-          document: chunk.fileDta 
-      }))
+      summaryOutput
     });
+     ;
 
   }catch(e)
   {

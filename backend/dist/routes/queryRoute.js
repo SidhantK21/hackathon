@@ -58,18 +58,14 @@ queryrouter.post("/query", async (req, res) => {
         });
         const prompt = await (0, prompt_1.createPrompt)(userInp, chunks);
         const summaryOutput = await (0, completion_1.chatCompl)(prompt);
-        console.log(summaryOutput);
+        // console.log(summaryOutput);
         if (!chunks || chunks.length === 0) {
             console.log("No chunks found for the given vector IDs");
         }
         res.json({
-            results: chunks.map((chunk) => ({
-                chunk: chunk.chunk,
-                fileId: chunk.fileId,
-                vectorId: chunk.vectorId,
-                document: chunk.fileDta
-            }))
+            summaryOutput
         });
+        ;
     }
     catch (e) {
         console.log("Error occured", e);

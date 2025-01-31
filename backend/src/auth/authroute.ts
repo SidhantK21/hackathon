@@ -29,12 +29,13 @@ interface SignUpBody{
 authRouter.post("/signup", async (req: Request, res: Response) => {
     try {
         const { firstName, lastName, email, password }: SignUpBody = req.body;
+        console.log(req.body);
 
-        // Validate required fields
-        if (!firstName || !lastName || !email || !password) {
-             res.status(400).json({ message: "All fields are required" });
-             return;
-        }
+        // // Validate required fields
+        // if (!firstName || !lastName || !email || !password) {
+        //      res.status(400).json({ message: "All fields are required" });
+        //      return;
+        // }
 
         // Check if user already exists
         const existingUser = await client.user.findUnique({

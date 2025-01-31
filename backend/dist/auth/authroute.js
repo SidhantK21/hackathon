@@ -12,11 +12,12 @@ const authRouter = (0, express_1.Router)();
 authRouter.post("/signup", async (req, res) => {
     try {
         const { firstName, lastName, email, password } = req.body;
-        // Validate required fields
-        if (!firstName || !lastName || !email || !password) {
-            res.status(400).json({ message: "All fields are required" });
-            return;
-        }
+        console.log(req.body);
+        // // Validate required fields
+        // if (!firstName || !lastName || !email || !password) {
+        //      res.status(400).json({ message: "All fields are required" });
+        //      return;
+        // }
         // Check if user already exists
         const existingUser = await client.user.findUnique({
             where: { email }

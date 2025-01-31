@@ -32,8 +32,8 @@ pdfrouter.post("/pdfUp",async (req: Request, res: Response) => {
         // }
 
 
-        // const inputaudio:string=req.body;
-        // console.log(inputaudio)
+        const inputaudio:string=req.body;
+        console.log(inputaudio)
         const path: string = req.file ? req.file.path : req.body.path;
         console.log(path);
         if(!path)
@@ -43,6 +43,7 @@ pdfrouter.post("/pdfUp",async (req: Request, res: Response) => {
         console.log("Genrating script");
         const transcript = await transcriptGen(path);
         console.log("done with the script");
+        console.log(transcript)
         if(!transcript)
         {
             res.json({
@@ -66,8 +67,8 @@ pdfrouter.post("/pdfUp",async (req: Request, res: Response) => {
         // });
         // console.log(del);
     
-        // 3. Flush changes to persist deletion
-        // await client.flush({ collection_names:collectionName });
+        // // 3. Flush changes to persist deletion
+        // // await client.flush({ collection_names:collectionName });
     
         // // 4. Release collection from memory
         // await client.releaseCollection({
